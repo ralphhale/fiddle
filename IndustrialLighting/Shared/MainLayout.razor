@@ -1,0 +1,34 @@
+﻿@inherits LayoutComponentBase
+
+<style>
+    .main-content {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+</style>
+
+<MudThemeProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        Industrial Lighting
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent Class="main-content" >
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

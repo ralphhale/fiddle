@@ -1,0 +1,42 @@
+﻿@page "/materialtypes"
+@using IndustrialLighting.Domain.Services
+@using IndustrialLighting.Persistence.Entities
+
+@inject NavigationManager navigationManager
+@inject MaterialTypeService materialTypeService
+
+<PageTitle>Material Types</PageTitle>
+
+<MudText Typo="Typo.h2">Material Types</MudText>
+
+<MudText Typo="Typo.body1">Manage your list of material type categories here</MudText>
+
+@if (materialTypes == null)
+{
+    <MudText Typo="Typo.h6">Loading...</MudText>
+}
+else
+{
+    <MudButton Class="mt-8 mb-8" Variant="Variant.Filled" Color="Color.Primary" Href="/materialtype">Create a Material Type</MudButton>
+
+    <MudTable Items="@materialTypes" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable" T="MaterialType">
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Name</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<MaterialType>? materialTypes;
+    private MudTable<MaterialType> mudTable;
+
+    protected override async Task OnInitializedAsync()
+    {
+        materialTypes = await materialTypeService.ListAsync();
+    }
+}

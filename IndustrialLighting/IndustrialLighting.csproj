@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MudBlazor" Version="6.1.7" />
+    <PackageReference Include="MudBlazor.ThemeManager" Version="1.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IndustrialLighting.Domain\IndustrialLighting.Domain.csproj" />
+    <ProjectReference Include="..\IndustrialLighting.Persistence\IndustrialLighting.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

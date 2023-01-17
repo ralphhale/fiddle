@@ -1,0 +1,54 @@
+﻿@page "/materials"
+@using IndustrialLighting.Domain.Services
+@using IndustrialLighting.Persistence.Entities
+
+@inject NavigationManager navigationManager
+@inject MaterialService materialService
+
+<style>
+    .heading {
+        margin-bottom: 32px;
+    }
+</style>
+
+<PageTitle>Materials</PageTitle>
+
+<div class="heading">
+    <MudText Typo="Typo.h2">Materials</MudText>
+
+    <MudText Typo="Typo.body1">Manage your list of materials here</MudText>
+</div>
+
+@if (materials == null)
+{
+    <MudText Typo="Typo.h6">Loading...</MudText>
+}
+else
+{
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/material">Create a Material</MudButton>
+
+    <MudTable Items="@materials" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable" T="Material">
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Price</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="TypeName">@context.Type.Name</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Price">@context.Price</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<Material>? materials;
+    private MudTable<Material> mudTable;
+
+    protected override async Task OnInitializedAsync()
+    {
+        materials = await materialService.ListAsync();
+    }
+}

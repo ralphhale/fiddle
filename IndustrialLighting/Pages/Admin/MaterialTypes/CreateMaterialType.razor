@@ -1,0 +1,56 @@
+﻿@page "/materialtype"
+@using IndustrialLighting.Domain.Services
+@using IndustrialLighting.Persistence.Entities
+
+@inject NavigationManager navigationManager
+@inject MaterialTypeService materialTypeService
+@inject ISnackbar snackbar
+
+<PageTitle>Create a Material Type</PageTitle>
+
+<MudText Typo="Typo.h2">Create a Material Type</MudText>
+
+<MudText Typo="Typo.body1">Specify the material type properties and click save</MudText>
+
+<MudGrid Class="mt-8 mb-8">
+    <MudItem xs="12" sm="6" md="4">
+        <MudTextField @bind-Value="materialType.Name" Label="Material Type Name" Variant="Variant.Outlined"></MudTextField>
+    </MudItem>
+</MudGrid>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnSaveClick" Disabled="@(!canClickButtons)">Save</MudButton>
+<MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="/materialtypes" Disabled="@(!canClickButtons)">Cancel</MudButton>
+
+@code {
+    private MaterialType materialType = new();
+    private bool canClickButtons = true;
+
+    private async Task OnSaveClick()
+    {
+        try
+        {
+            canClickButtons = false;
+
+            await materialTypeService.CreateAsync(materialType.Name);
+
+            snackbar.Add($"Material type {materialType.Name} was added successfully", Severity.Success, config =>
+            {
+                config.RequireInteraction = true;
+                config.ShowCloseIcon = false;
+
+                config.Onclick = snackbar =>
+                {
+                    navigationManager.NavigateTo("/materialtypes");
+
+                    return Task.CompletedTask;
+                };
+            });
+        }
+        catch (Exception ex)
+        {
+            snackbar.Add(ex.Message, Severity.Error);
+
+            canClickButtons = true;
+        }
+    }
+}

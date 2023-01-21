@@ -9,10 +9,13 @@ namespace IndustrialLighting.Domain.Validations.Validators.MaterialTypes
     {
         public UpdateMaterialTypeValidator(IndustrialLightingContext dbContext)
         {
-            _ = RuleFor(item => item.Name)
+            RuleFor(item => item.Name)
                 .Cascade(CascadeMode.Stop)
                 .Must(item => !string.IsNullOrWhiteSpace(item))
-                    .WithMessage("Please specify a Material Type name")
+                    .WithMessage("Please specify a Material Type name");
+
+            RuleFor(item => item.Name)
+                .Cascade(CascadeMode.Stop)
                 .MustAsync(async (item, name, cancellationToken) =>
                  {
                      var id = item.Id;

@@ -51,14 +51,17 @@ else
     private bool canCancel = true;
     private string cancelTtext = "Cancel";
     private bool isLoading = true;
-    private MaterialType materialType = null;
+    private MaterialType materialType = new();
     private List<ValidationFailure> Errors = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        materialType = await materialTypeService.GetAsync(Id);
+        var item = await materialTypeService.GetAsync(Id);
+
+        // rph: not sure why I need to do this but EF is doing some strange magic if you modify the entity in the form
+        materialType = item.Clone();
 
         isLoading = false;
     }
@@ -69,10 +72,11 @@ else
         {
             canSave = false;
             canCancel = false;
+            Errors.Clear();
 
             await materialTypeService.UpdateAsync(materialType);
 
-            snackbarService.Add($"Material type {materialType.Name} was added successfully", Severity.Success);
+            snackbarService.Add($"Material type {materialType.Name} was updated successfully", Severity.Success);
 
             canCancel = true;
             cancelTtext = "Close";

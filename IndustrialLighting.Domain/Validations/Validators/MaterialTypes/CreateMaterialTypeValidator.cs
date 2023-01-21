@@ -9,18 +9,20 @@ namespace IndustrialLighting.Domain.Validations.Validators.MaterialTypes
     {
         public CreateMaterialTypeValidator(IndustrialLightingContext dbContext)
         {
-            _ = RuleFor(item => item.Name)
+            RuleFor(item => item.Name)
                 .Cascade(CascadeMode.Stop)
-                .Must(item => !string.IsNullOrWhiteSpace(item))
-                    .WithMessage("Please specify a Material Type name")
-                .MustAsync(async (item, name, cancellationToken) =>
+                .Must(item =>  !string.IsNullOrWhiteSpace(item))
+                    .WithMessage("Please specify a Material Type name");
+
+            RuleFor(item => item.Name)
+               .MustAsync(async (item, name, cancellationToken) =>
                  {
                      var exists = await dbContext.MaterialTypes
                          .AnyAsync(item => item.Name.ToLower() == name.ToLower());
 
                      return !exists;
                  })
-                    .When(item => !string.IsNullOrEmpty(item.Name))
+                    .When(item => !string.IsNullOrWhiteSpace(item.Name))
                     .WithMessage("Please specify a unique Material Type name");
         }
     }

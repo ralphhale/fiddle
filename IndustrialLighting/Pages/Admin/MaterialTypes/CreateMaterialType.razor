@@ -48,6 +48,7 @@
         {
             canSave = false;
             canCancel = false;
+            Errors.Clear();
 
             await materialTypeService.CreateAsync(materialType.Name);
 

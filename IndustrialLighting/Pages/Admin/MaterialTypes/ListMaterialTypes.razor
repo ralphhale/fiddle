@@ -21,12 +21,18 @@ else
 
     <MudTable Items="@materialTypes" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable" T="MaterialType">
         <HeaderContent>
-            <MudTh>ID</MudTh>
             <MudTh>Name</MudTh>
+            <MudTh>Edit</MudTh>
+            <MudTh>Delete</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd>
+                <MudIconButton Href=@($"/materialtype/{context.Id}") Icon="@Icons.Custom.Uncategorized.Bacteria" Size="Size.Large" Color="Color.Warning"></MudIconButton>
+            </MudTd>
+            <MudTd>
+                <MudIconButton OnClick="OnDeleteClick" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" Color="Color.Error"></MudIconButton>
+            </MudTd>
         </RowTemplate>
     </MudTable>
 }
@@ -41,5 +47,35 @@ else
         materialTypes = await materialTypeService.ListAsync();
 
         isLoading = false;
+    }
+
+    private async Task OnDeleteClick()
+    {
+        //try
+        //{
+        //    canSave = false;
+        //    canCancel = false;
+
+        //    await materialTypeService.CreateAsync(materialType.Name);
+
+        //    snackbarService.Add($"Material type {materialType.Name} was added successfully", Severity.Success);
+
+        //    canCancel = true;
+        //    cancelTtext = "Close";
+        //}
+        //catch (ValidatorException vex)
+        //{
+        //    Errors = vex.Errors;
+
+        //    canSave = true;
+        //    canCancel = true;
+        //}
+        //catch (Exception ex)
+        //{
+        //    snackbarService.Add(ex.Message, Severity.Error);
+
+        //    canSave = true;
+        //    canCancel = true;
+        //}
     }
 }

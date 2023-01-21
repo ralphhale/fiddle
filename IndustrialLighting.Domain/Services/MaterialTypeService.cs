@@ -43,6 +43,29 @@ namespace IndustrialLighting.Domain.Services
             }
         }
 
+        public async Task DeleteAsync(int id)
+        {
+            var item = new MaterialType
+            {
+                Id = id
+            };
+
+            var validation = await _validations.Delete.ValidateAsync(item);
+
+            if (validation.IsValid)
+            {
+                _dbContext.MaterialTypes
+                    .Remove(item);
+
+                await _dbContext
+                    .SaveChangesAsync();
+            }
+            else
+            {
+                throw new ValidatorException(validation.Errors);
+            }
+        }
+
         public async Task<MaterialType> GetAsync(int id)
         {
             var item = await _dbContext.MaterialTypes
@@ -58,6 +81,28 @@ namespace IndustrialLighting.Domain.Services
                 .ToListAsync();
 
             return items;
+        }
+
+        public async Task<MaterialType> UpdateAsync(MaterialType materialType)
+        {
+            var validation = await _validations.Update.ValidateAsync(materialType);
+
+            if (validation.IsValid)
+            {
+                var item = await GetAsync(materialType.Id);
+
+                item.IsActive = materialType.IsActive;
+                item.Name = materialType.Name;
+
+                await _dbContext
+                    .SaveChangesAsync();
+
+                return item;
+            }
+            else
+            {
+                throw new ValidatorException(validation.Errors);
+            }
         }
     }
 }

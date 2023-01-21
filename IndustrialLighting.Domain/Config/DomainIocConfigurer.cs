@@ -15,8 +15,9 @@ namespace IndustrialLighting.Domain.Config
 
             services
                 .AddTransient<CreateMaterialTypeValidator>()
+                .AddTransient<DeleteMaterialTypeValidator>()
+                .AddTransient<UpdateMaterialTypeValidator>()
                 .AddTransient<MaterialTypeValidations>();
-            
 
             return services;
         }

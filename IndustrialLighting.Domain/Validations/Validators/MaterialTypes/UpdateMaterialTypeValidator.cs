@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IndustrialLighting.Domain.Validations.Validators.MaterialTypes
 {
-    public class CreateMaterialTypeValidator : AbstractValidator<MaterialType>
+    public class UpdateMaterialTypeValidator : AbstractValidator<MaterialType>
     {
-        public CreateMaterialTypeValidator(IndustrialLightingContext dbContext)
+        public UpdateMaterialTypeValidator(IndustrialLightingContext dbContext)
         {
             _ = RuleFor(item => item.Name)
                 .Cascade(CascadeMode.Stop)
@@ -15,8 +15,10 @@ namespace IndustrialLighting.Domain.Validations.Validators.MaterialTypes
                     .WithMessage("Please specify a Material Type name")
                 .MustAsync(async (item, name, cancellationToken) =>
                  {
+                     var id = item.Id;
+
                      var exists = await dbContext.MaterialTypes
-                         .AnyAsync(item => item.Name.ToLower() == name.ToLower());
+                         .AnyAsync(item => item.Id != id && item.Name.ToLower() == name.ToLower());
 
                      return !exists;
                  })

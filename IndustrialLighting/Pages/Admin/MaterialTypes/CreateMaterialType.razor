@@ -1,10 +1,13 @@
 ﻿@page "/materialtype"
+@using FluentValidation.Results
+@using IndustrialLighting.Domain.Exceptions
 @using IndustrialLighting.Domain.Services
+@using IndustrialLighting.Domain.Validations.Extensions
 @using IndustrialLighting.Persistence.Entities
 
 @inject NavigationManager navigationManager
 @inject MaterialTypeService materialTypeService
-@inject ISnackbar snackbar
+@inject ISnackbar snackbarService
 
 <PageTitle>Create a Material Type</PageTitle>
 
@@ -12,45 +15,60 @@
 
 <MudText Typo="Typo.body1">Specify the material type properties and click save</MudText>
 
-<MudGrid Class="mt-8 mb-8">
-    <MudItem xs="12" sm="6" md="4">
+<MudGrid Class="mt-8">
+    <MudItem xs="12" sm="8" md="6">
         <MudTextField @bind-Value="materialType.Name" Label="Material Type Name" Variant="Variant.Outlined"></MudTextField>
+        @if (Errors.HasError(nameof(MaterialType.Name)))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense="true" Class="my-2">@Errors.ErrorMessage(nameof(MaterialType.Name))</MudAlert>
+        }
     </MudItem>
 </MudGrid>
 
-<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnSaveClick" Disabled="@(!canClickButtons)">Save</MudButton>
-<MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="/materialtypes" Disabled="@(!canClickButtons)">Cancel</MudButton>
+<MudGrid Class="mt-8">
+    <MudItem xs="12" sm="4" md="3">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnSaveClick" Disabled="@(!canSave)" FullWidth="true">Save</MudButton>
+    </MudItem>
+    <MudItem xs="12" sm="4" md="3">
+       <MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="/materialtypes" Disabled="@(!canCancel)" FullWidth="true">@cancelTtext</MudButton>
+    </MudItem>
+</MudGrid>
+
 
 @code {
+    private bool canSave = true;
+    private bool canCancel = true;
+    private string cancelTtext = "Cancel";
     private MaterialType materialType = new();
-    private bool canClickButtons = true;
+    private List<ValidationFailure> Errors = new();
 
     private async Task OnSaveClick()
     {
         try
         {
-            canClickButtons = false;
+            canSave = false;
+            canCancel = false;
 
             await materialTypeService.CreateAsync(materialType.Name);
 
-            snackbar.Add($"Material type {materialType.Name} was added successfully", Severity.Success, config =>
-            {
-                config.RequireInteraction = true;
-                config.ShowCloseIcon = false;
+            snackbarService.Add($"Material type {materialType.Name} was added successfully", Severity.Success);
 
-                config.Onclick = snackbar =>
-                {
-                    navigationManager.NavigateTo("/materialtypes");
+            canCancel = true;
+            cancelTtext = "Close";
+        }
+        catch (ValidatorException vex)
+        {
+            Errors = vex.Errors;
 
-                    return Task.CompletedTask;
-                };
-            });
+            canSave = true;
+            canCancel = true;
         }
         catch (Exception ex)
         {
-            snackbar.Add(ex.Message, Severity.Error);
+            snackbarService.Add(ex.Message, Severity.Error);
 
-            canClickButtons = true;
+            canSave = true;
+            canCancel = true;
         }
     }
 }

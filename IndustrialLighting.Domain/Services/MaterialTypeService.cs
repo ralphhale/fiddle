@@ -1,4 +1,5 @@
 ﻿using IndustrialLighting.Domain.Exceptions;
+using IndustrialLighting.Domain.Validations;
 using IndustrialLighting.Persistence;
 using IndustrialLighting.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -8,39 +9,38 @@ namespace IndustrialLighting.Domain.Services
     public class MaterialTypeService
     {
         private readonly IndustrialLightingContext _dbContext;
+        private readonly MaterialTypeValidations _validations;
 
-        public MaterialTypeService(IndustrialLightingContext dbContext)
+        public MaterialTypeService(IndustrialLightingContext dbContext, MaterialTypeValidations validations)
         {
             _dbContext = dbContext;
+            _validations = validations;
         }
 
         public async Task<MaterialType> CreateAsync(string name)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new InvalidArgumentException("Please specify a material type name");
-            }
-
-            var exists = await _dbContext.MaterialTypes
-                .AnyAsync(item => item.Name.ToLower() == name.ToLower());
-
-            if (exists)
-            {
-                throw new InvalidArgumentException("Please specify a unique material type name");
-            }
-
             var item = new MaterialType
             {
                 IsActive = true,
                 Name = name
             };
 
-            var result = await _dbContext.MaterialTypes
-                .AddAsync(item);
+            var validation = await _validations.Create.ValidateAsync(item);
 
-            await _dbContext.SaveChangesAsync();
+            if (validation.IsValid)
+            {
+                var result = await _dbContext.MaterialTypes
+                    .AddAsync(item);
 
-            return result.Entity;
+                await _dbContext
+                    .SaveChangesAsync();
+
+                return result.Entity;
+            }
+            else
+            {
+                throw new ValidatorException(validation.Errors);
+            }
         }
 
         public async Task<MaterialType> GetAsync(int id)

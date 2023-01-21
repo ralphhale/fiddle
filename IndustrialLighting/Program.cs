@@ -1,32 +1,31 @@
-using IndustrialLighting.Domain.Services;
-using IndustrialLighting.Persistence;
+using IndustrialLighting.Domain.Config;
+using IndustrialLighting.Persistence.Configure;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "";
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddTransient<MaterialService>();
-builder.Services.AddTransient<MaterialTypeService>();
+builder.Services.ConfigureDomain();
+builder.Services.ConfigurePersistence(connectionString);
 
 builder.Services.AddMudServices(config =>
 {
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
 
     config.SnackbarConfiguration.PreventDuplicates = false;
     config.SnackbarConfiguration.NewestOnTop = false;
     config.SnackbarConfiguration.ShowCloseIcon = true;
-    config.SnackbarConfiguration.VisibleStateDuration = 10000;
+    config.SnackbarConfiguration.ClearAfterNavigation = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 5000;
     config.SnackbarConfiguration.HideTransitionDuration = 500;
     config.SnackbarConfiguration.ShowTransitionDuration = 500;
     config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
-
-builder.Services.AddTransient<IStartupFilter, MigrationStartupFilter<IndustrialLightingContext>>();
-builder.Services.AddDbContext<IndustrialLightingContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

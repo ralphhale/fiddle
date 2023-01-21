@@ -55,6 +55,9 @@ namespace IndustrialLighting.Domain.Services
             if (validation.IsValid)
             {
                 _dbContext.MaterialTypes
+                    .Attach(item);
+
+                _dbContext.MaterialTypes
                     .Remove(item);
 
                 await _dbContext
@@ -77,6 +80,7 @@ namespace IndustrialLighting.Domain.Services
         public async Task<List<MaterialType>> ListAsync()
         {
             var items = await _dbContext.MaterialTypes
+                .AsNoTracking()
                 .OrderBy(item => item.Name)
                 .ToListAsync();
 

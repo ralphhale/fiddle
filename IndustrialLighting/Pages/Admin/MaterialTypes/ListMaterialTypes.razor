@@ -1,9 +1,14 @@
 ﻿@page "/materialtypes"
+@using FluentValidation.Results
+@using IndustrialLighting.Domain.Exceptions
 @using IndustrialLighting.Domain.Services
+@using IndustrialLighting.Pages.Admin.MaterialTypes.Components
 @using IndustrialLighting.Persistence.Entities
 
+@inject IDialogService dialogService
 @inject NavigationManager navigationManager
 @inject MaterialTypeService materialTypeService
+@inject ISnackbar snackbarService
 
 <PageTitle>Material Types</PageTitle>
 
@@ -31,7 +36,7 @@ else
                 <MudIconButton Href=@($"/materialtype/{context.Id}") Icon="@Icons.Custom.Uncategorized.Bacteria" Size="Size.Large" Color="Color.Warning"></MudIconButton>
             </MudTd>
             <MudTd>
-                <MudIconButton OnClick="OnDeleteClick" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" Color="Color.Error"></MudIconButton>
+                <MudIconButton OnClick="@(e => OnDeleteClicked(context))" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" Color="Color.Error"></MudIconButton>
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -41,6 +46,7 @@ else
     private bool isLoading = true;
     private List<MaterialType>? materialTypes;
     private MudTable<MaterialType> mudTable;
+    private List<ValidationFailure> Errors = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,33 +55,34 @@ else
         isLoading = false;
     }
 
-    private async Task OnDeleteClick()
-    {
-        //try
-        //{
-        //    canSave = false;
-        //    canCancel = false;
+    private async Task OnDeleteClicked(MaterialType materialType) {
+        var options = new DialogOptions 
+        { 
+            CloseOnEscapeKey = true 
+        };
 
-        //    await materialTypeService.CreateAsync(materialType.Name);
+        var dialogReference = dialogService.Show<ConfirmDeleteDialog>("", options);
 
-        //    snackbarService.Add($"Material type {materialType.Name} was added successfully", Severity.Success);
+        var dialogResult = await dialogReference.Result;
 
-        //    canCancel = true;
-        //    cancelTtext = "Close";
-        //}
-        //catch (ValidatorException vex)
-        //{
-        //    Errors = vex.Errors;
+        if (!dialogResult.Canceled) 
+        {
+            try
+            {
+                await materialTypeService.DeleteAsync(materialType.Id);
 
-        //    canSave = true;
-        //    canCancel = true;
-        //}
-        //catch (Exception ex)
-        //{
-        //    snackbarService.Add(ex.Message, Severity.Error);
+                snackbarService.Add($"Material type {materialType.Name} was deleted successfully", Severity.Success);
 
-        //    canSave = true;
-        //    canCancel = true;
-        //}
+                materialTypes = await materialTypeService.ListAsync();
+            }
+            catch (ValidatorException vex)
+            {
+                Errors = vex.Errors;
+            }
+            catch (Exception ex)
+            {
+                snackbarService.Add(ex.Message, Severity.Error);
+            }
+        }
     }
 }

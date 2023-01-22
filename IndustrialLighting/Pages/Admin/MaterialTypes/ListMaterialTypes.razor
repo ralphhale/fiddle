@@ -24,22 +24,44 @@ else
 {
     <MudButton Class="mt-8 mb-8" Variant="Variant.Filled" Color="Color.Primary" Href="/materialtype">Create a Material Type</MudButton>
 
-    <MudTable Items="@materialTypes" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable" T="MaterialType">
-        <HeaderContent>
-            <MudTh>Name</MudTh>
-            <MudTh>Edit</MudTh>
-            <MudTh>Delete</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd>
-                <MudIconButton Href=@($"/materialtype/{context.Id}") Icon="@Icons.Custom.Uncategorized.Bacteria" Size="Size.Large" Color="Color.Warning"></MudIconButton>
-            </MudTd>
-            <MudTd>
-                <MudIconButton OnClick="@(e => OnDeleteClicked(context))" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" Color="Color.Error"></MudIconButton>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudTable Items="@materialTypes" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable" T="MaterialType">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Edit</MudTh>
+                <MudTh>Delete</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd>
+                    <MudIconButton Href=@($"/materialtype/{context.Id}") Icon="@Icons.Custom.Uncategorized.Bacteria" Size="Size.Large" Color="Color.Warning"></MudIconButton>
+                </MudTd>
+                <MudTd>
+                    <MudIconButton OnClick="@(e => OnDeleteClicked(context))" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" Color="Color.Error"></MudIconButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudHidden>
+
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+
+        <MudList>
+            @foreach (var context in materialTypes)
+            { 
+                <MudListItem>
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5">@context.Name</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Href=@($"/materialtype/{context.Id}") Variant="Variant.Outlined" StartIcon="@Icons.Custom.Uncategorized.Bacteria" Color="Color.Warning">Edit</MudButton>
+                            <MudButton OnClick="@(e => OnDeleteClicked(context))" Class="ml-8" Variant="Variant.Outlined" StartIcon="@Icons.Custom.Uncategorized.Radioactive" Color="Color.Error" Size="Size.Medium">Delete</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudListItem>
+            }
+        </MudList>
+    </MudHidden>
 }
 
 @code {

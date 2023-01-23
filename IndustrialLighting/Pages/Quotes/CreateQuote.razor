@@ -1,0 +1,172 @@
+﻿@page "/quote"
+@using FluentValidation.Results
+@using IndustrialLighting.Domain.Exceptions
+@using IndustrialLighting.Domain.Services
+@using IndustrialLighting.Domain.Validations.Extensions
+@using IndustrialLighting.Pages.Quotes.Components
+@using IndustrialLighting.Pages.Quotes.Models
+@using IndustrialLighting.Persistence.Entities
+
+@inject IDialogService dialogService
+@inject NavigationManager navigationManager
+@inject MaterialService materialService
+@inject MaterialTypeService materialTypeService
+@inject ISnackbar snackbarService
+
+<PageTitle>Create Quote</PageTitle>
+
+<MudText Typo="Typo.h2">Create Quote</MudText>
+
+<MudText Typo="Typo.body1">Specify the materials for this quote</MudText>
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Success" Style="height:70px;width:70px;" Indeterminate="true" />
+}
+else
+{
+    <MudGrid Class="mt-8 mb-8">
+        <MudItem xs="12" sm="2">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(e => OnAddMaterialClick())">Select Material</MudButton>
+        </MudItem>
+
+        <MudItem xs="12" sm="2">
+            <MudText Typo="Typo.h5">Total Price: $@TotalPrice()</MudText>
+        </MudItem>
+    </MudGrid>
+
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudTable Items="@quoteMaterials" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable" T="QuoteMaterial">
+            <HeaderContent>
+                <MudTh>Type</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Price Each</MudTh>
+                <MudTh>Price Total</MudTh>
+                <MudTh>Total Units</MudTh>
+                <MudTh>Edit</MudTh>
+                <MudTh>Delete</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Type">@context.Material?.Type?.Name</MudTd>
+                <MudTd DataLabel="Name">@context.Material?.Name</MudTd>
+                <MudTd DataLabel="PriceEach">$@context.Material?.Price</MudTd>
+                <MudTd DataLabel="PriceTotal">$@context.TotalPrice</MudTd>
+                <MudTd DataLabel="TotalUnits">@context.TotalUnits</MudTd>
+                <MudTd>
+                    <MudIconButton OnClick="@(e => OnEditClicked(context))" Icon="@Icons.Custom.Uncategorized.Bacteria" Size="Size.Large" Color="Color.Warning"></MudIconButton>
+                </MudTd>
+                <MudTd>
+                    <MudIconButton OnClick="@(e => OnDeleteClicked(context))" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" Color="Color.Error"></MudIconButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudHidden>
+
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudList>
+            @foreach (var context in quoteMaterials)
+            { 
+                <MudListItem>
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5">@context.Material?.Type?.Name</MudText>
+                            <MudText Typo="Typo.h6">@context.Material?.Name</MudText>
+                            <MudText Typo="Typo.body1">$@context.Material?.Price Each</MudText>
+                            <MudText Typo="Typo.body1">$@context.TotalPrice Total</MudText>
+                            <MudText Typo="Typo.body1">@context.TotalUnits Total Units</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton OnClick="@(e => OnEditClicked(context))" Class="ml-8" Variant="Variant.Outlined" StartIcon="@Icons.Custom.Uncategorized.Bacteria" Color="Color.Warning" Size="Size.Medium">Edit</MudButton>
+                            <MudButton OnClick="@(e => OnDeleteClicked(context))" Class="ml-8" Variant="Variant.Outlined" StartIcon="@Icons.Custom.Uncategorized.Radioactive" Color="Color.Error" Size="Size.Medium">Delete</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudListItem>
+            }
+        </MudList>
+    </MudHidden>
+}
+
+
+@code {
+    private bool canSave = true;
+    private bool canCancel = true;
+    private string cancelTtext = "Cancel";
+    private bool isLoading = true;
+    private MudTable<QuoteMaterial>? mudTable;
+    private List<Material> materials = new();
+    private List<MaterialType> materialTypes = new();
+    private List<QuoteMaterial> quoteMaterials = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        materialTypes = await materialTypeService
+            .ListAsync();
+
+        materials = await materialService
+            .ListAsync();
+
+        isLoading = false;
+    }
+
+    private async Task OnAddMaterialClick()
+    {
+        var parameters = new DialogParameters();
+
+        parameters.Add("materialTypes", materialTypes);
+        parameters.Add("materials", materials);
+
+        var dialogReference = dialogService.Show<MaterialSelectorDialog>("", parameters);
+
+        var dialogResult = await dialogReference.Result;
+
+        if (!dialogResult.Canceled)
+        {
+            var quoteMaterial = dialogResult.Data as QuoteMaterial;
+
+            if (quoteMaterial != null)
+            {
+                quoteMaterials.Add(quoteMaterial);
+            }
+        }
+    }
+
+    private async Task OnEditClicked(QuoteMaterial quoteMaterial) 
+    {
+        var parameters = new DialogParameters();
+
+        parameters.Add("materialTypes", materialTypes);
+        parameters.Add("materialType", quoteMaterial.Material?.Type);
+        parameters.Add("materials", materials);
+        parameters.Add("material", quoteMaterial.Material);
+        parameters.Add("totalUnits", quoteMaterial.TotalUnits);
+
+        var dialogReference = dialogService.Show<MaterialSelectorDialog>("", parameters);
+
+        var dialogResult = await dialogReference.Result;
+
+        if (!dialogResult.Canceled)
+        {
+            var updatedQuoteMaterial = dialogResult.Data as QuoteMaterial;
+
+            if (updatedQuoteMaterial != null)
+            {
+                var index = quoteMaterials.IndexOf(quoteMaterial);
+
+                quoteMaterials.RemoveAt(index);
+                quoteMaterials.Insert(index, updatedQuoteMaterial);
+            }
+        }
+    }
+
+    private void OnDeleteClicked(QuoteMaterial quoteMaterial) 
+    {
+        quoteMaterials.Remove(quoteMaterial);
+    }
+
+    private decimal TotalPrice()
+    {
+        return quoteMaterials
+            .Select(item => item.TotalPrice)
+            .Sum();
+    }
+}

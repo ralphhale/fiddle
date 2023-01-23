@@ -31,10 +31,9 @@ else
                 <MudTextField @bind-Value="searchText" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <HeaderContent>
-                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(x => x.Type?.Name ?? string.Empty)">Type</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(x => x.Name)">Name</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(x => x.Price)">Price</MudTableSortLabel></MudTh>
-                <MudTh>Price</MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(item => item.Type?.Name ?? string.Empty)">Type</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(item => item.Name)">Name</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(item => item.Price)">Price</MudTableSortLabel></MudTh>
                 <MudTh>Edit</MudTh>
                 <MudTh>Delete</MudTh>
             </HeaderContent>
@@ -59,7 +58,9 @@ else
                 <MudListItem>
                     <MudCard>
                         <MudCardContent>
-                            <MudText Typo="Typo.h5">@context.Name</MudText>
+                            <MudText Typo="Typo.h5">@context.Type?.Name</MudText>
+                            <MudText Typo="Typo.h6">@context.Name</MudText>
+                            <MudText Typo="Typo.body1">$@context.Price</MudText>
                         </MudCardContent>
                         <MudCardActions>
                             <MudButton Href=@($"/material/{context.Id}") Variant="Variant.Outlined" StartIcon="@Icons.Custom.Uncategorized.Bacteria" Color="Color.Warning">Edit</MudButton>
@@ -87,7 +88,8 @@ else
         isLoading = false;
     }
 
-    private async Task OnDeleteClicked(Material material) {
+    private async Task OnDeleteClicked(Material material) 
+    {
         var options = new DialogOptions 
         { 
             CloseOnEscapeKey = true 

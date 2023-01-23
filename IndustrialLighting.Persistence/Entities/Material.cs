@@ -21,5 +21,10 @@
                 Type = this.Type?.Clone()
             };
         }
+
+        public override string ToString()
+        {
+            return !string.IsNullOrEmpty(Name) ? Name : string.Empty;
+        }
     }
 }

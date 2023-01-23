@@ -1,0 +1,74 @@
+﻿@using IndustrialLighting.Pages.Quotes.Models
+@using IndustrialLighting.Persistence.Entities
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            Chooose the material you want to add to your quote
+        </div>
+
+        <MudGrid Class="mt-8">
+            <MudItem xs="12">
+                <MudSelect T="MaterialType" Label="Material Type" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="@materialType">
+                    @foreach (var context in materialTypes)
+                    {
+                        <MudSelectItem T="MaterialType" Value="@context">@context.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudSelect T="Material" Label="Material" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="@material">
+                    @foreach (var context in materials.Where(item => materialType.Id == 0 || item.TypeId == materialType.Id))
+                    {
+                        <MudSelectItem T="Material" Value="@context">@context.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField @bind-Value="totalUnits" Label="Total Units Needed" Variant="Variant.Outlined"></MudTextField>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Outlined" OnClick="Confirm" Disabled="@(material.Id == 0)">Select Material</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] 
+    public List<Material> materials { get; set; } = new();
+
+    [Parameter] 
+    public List<MaterialType> materialTypes { get; set; } = new();
+
+    [Parameter] 
+    public Material material { get; set; } = new();
+
+    [Parameter] 
+    public MaterialType materialType { get; set; } = new();
+
+    [Parameter] 
+    public int totalUnits { get; set; } = 1;
+
+    public void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    public void Confirm()
+    {
+        var quotedMaterial = new QuoteMaterial
+        {
+            Material = materials.FirstOrDefault(item => item.Id == material.Id),
+            TotalUnits = totalUnits
+        };
+
+        MudDialog?.Close(DialogResult.Ok(quotedMaterial));
+    }
+}

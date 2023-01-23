@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IndustrialLighting.Persistence.Migrations
 {
     [DbContext(typeof(IndustrialLightingContext))]
-    [Migration("20230121072942_InitialMigration")]
+    [Migration("20230123222620_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -40,6 +40,7 @@ namespace IndustrialLighting.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("TypeId")

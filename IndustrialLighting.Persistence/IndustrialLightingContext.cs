@@ -26,6 +26,10 @@ namespace IndustrialLighting.Persistence
 
             modelBuilder.Entity<Material>()
                .HasOne(item => item.Type);
+
+            modelBuilder.Entity<Material>()
+                .Property(item => item.Price)
+                .HasPrecision(18, 2);
         }
     }
 }

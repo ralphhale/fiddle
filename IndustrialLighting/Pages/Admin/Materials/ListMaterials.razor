@@ -1,54 +1,135 @@
 ﻿@page "/materials"
+@using FluentValidation.Results
+@using IndustrialLighting.Domain.Exceptions
 @using IndustrialLighting.Domain.Services
+@using IndustrialLighting.Pages.Admin.Materials.Components
 @using IndustrialLighting.Persistence.Entities
 
+@inject IDialogService dialogService
 @inject NavigationManager navigationManager
 @inject MaterialService materialService
-
-<style>
-    .heading {
-        margin-bottom: 32px;
-    }
-</style>
+@inject ISnackbar snackbarService
 
 <PageTitle>Materials</PageTitle>
 
-<div class="heading">
-    <MudText Typo="Typo.h2">Materials</MudText>
+<MudText Typo="Typo.h2">Materials</MudText>
 
-    <MudText Typo="Typo.body1">Manage your list of materials here</MudText>
-</div>
+<MudText Typo="Typo.body1">Manage your list of materials here</MudText>
 
-@if (materials == null)
+@if (isLoading)
 {
-    <MudText Typo="Typo.h6">Loading...</MudText>
+    <MudProgressCircular Color="Color.Success" Style="height:70px;width:70px;" Indeterminate="true" />
 }
 else
 {
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/material">Create a Material</MudButton>
+    <MudButton Class="mt-8 mb-8" Variant="Variant.Filled" Color="Color.Primary" Href="/material">Create Material</MudButton>
 
-    <MudTable Items="@materials" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable" T="Material">
-        <HeaderContent>
-            <MudTh>ID</MudTh>
-            <MudTh>Type</MudTh>
-            <MudTh>Name</MudTh>
-            <MudTh>Price</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
-            <MudTd DataLabel="TypeName">@context.Type.Name</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Price">@context.Price</MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudTable Items="@materials" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable" T="Material" Filter="new Func<Material, bool>(FilterFunction)">
+            <ToolBarContent>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchText" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(x => x.Type?.Name ?? string.Empty)">Type</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(x => x.Name)">Name</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Material, object>(x => x.Price)">Price</MudTableSortLabel></MudTh>
+                <MudTh>Price</MudTh>
+                <MudTh>Edit</MudTh>
+                <MudTh>Delete</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Type">@context.Type?.Name</MudTd>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Price">$@context.Price</MudTd>
+                <MudTd>
+                    <MudIconButton Href=@($"/material/{context.Id}") Icon="@Icons.Custom.Uncategorized.Bacteria" Size="Size.Large" Color="Color.Warning"></MudIconButton>
+                </MudTd>
+                <MudTd>
+                    <MudIconButton OnClick="@(e => OnDeleteClicked(context))" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" Color="Color.Error"></MudIconButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudHidden>
+
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudList>
+            @foreach (var context in materials)
+            { 
+                <MudListItem>
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h5">@context.Name</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Href=@($"/material/{context.Id}") Variant="Variant.Outlined" StartIcon="@Icons.Custom.Uncategorized.Bacteria" Color="Color.Warning">Edit</MudButton>
+                            <MudButton OnClick="@(e => OnDeleteClicked(context))" Class="ml-8" Variant="Variant.Outlined" StartIcon="@Icons.Custom.Uncategorized.Radioactive" Color="Color.Error" Size="Size.Medium">Delete</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudListItem>
+            }
+        </MudList>
+    </MudHidden>
 }
 
 @code {
+    private bool isLoading = true;
     private List<Material>? materials;
     private MudTable<Material> mudTable;
+    private List<ValidationFailure> Errors = new();
+    private string searchText = "";
 
     protected override async Task OnInitializedAsync()
     {
-        materials = await materialService.ListAsync();
+        materials = await materialService
+            .ListAsync();
+
+        isLoading = false;
+    }
+
+    private async Task OnDeleteClicked(Material material) {
+        var options = new DialogOptions 
+        { 
+            CloseOnEscapeKey = true 
+        };
+
+        var dialogReference = dialogService.Show<ConfirmDeleteDialog>("", options);
+
+        var dialogResult = await dialogReference.Result;
+
+        if (!dialogResult.Canceled) 
+        {
+            try
+            {
+                await materialService.DeleteAsync(material.Id);
+
+                snackbarService.Add($"Material {material.Name} was deleted successfully", Severity.Success);
+
+                materials = await materialService.ListAsync();
+            }
+            catch (ValidatorException vex)
+            {
+                Errors = vex.Errors;
+            }
+            catch (Exception ex)
+            {
+                snackbarService.Add(ex.Message, Severity.Error);
+            }
+        }
+    }
+
+    private bool FilterFunction(Material element)
+    {
+        var materialName = element.Name;
+        var materialTypeName = element.Type?.Name ?? "";
+
+        if (string.IsNullOrWhiteSpace(searchText))
+            return true;
+        if (materialName.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (materialTypeName.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
     }
 }

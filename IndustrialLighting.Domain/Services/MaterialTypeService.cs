@@ -54,6 +54,16 @@ namespace IndustrialLighting.Domain.Services
 
             if (validation.IsValid)
             {
+                var local = _dbContext.MaterialTypes
+                    .Local
+                    .FirstOrDefault(entry => entry.Id.Equals(id));
+
+                if (local != null)
+                {
+                    // detach
+                    _dbContext.Entry(local).State = EntityState.Detached;
+                }
+
                 _dbContext.MaterialTypes
                     .Attach(item);
 

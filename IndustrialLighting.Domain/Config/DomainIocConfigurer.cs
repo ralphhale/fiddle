@@ -1,5 +1,6 @@
 ﻿using IndustrialLighting.Domain.Services;
 using IndustrialLighting.Domain.Validations;
+using IndustrialLighting.Domain.Validations.Validators.Materials;
 using IndustrialLighting.Domain.Validations.Validators.MaterialTypes;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,12 @@ namespace IndustrialLighting.Domain.Config
             services
                 .AddTransient<MaterialService>()
                 .AddTransient<MaterialTypeService>();
+
+            services
+                .AddTransient<CreateMaterialValidator>()
+                .AddTransient<DeleteMaterialValidator>()
+                .AddTransient<UpdateMaterialValidator>()
+                .AddTransient<MaterialValidations>();
 
             services
                 .AddTransient<CreateMaterialTypeValidator>()
